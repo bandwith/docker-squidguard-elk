@@ -30,6 +30,6 @@ script:
   - docker-compose run filebeat curl -v -s -L -x http://squidguard:3128 http://lemonlime.de | grep "The requested URL could not be retrieved"
   - docker-compose run filebeat grep -E 'lemonlime\.de/? - HIER_DIRECT/::1' /var/log/squid3/access.log
 
-notifications:
-  email:
-    - derk@muenchhausen.de
+# notifications:
+#   email:
+#     - derk@muenchhausen.de
