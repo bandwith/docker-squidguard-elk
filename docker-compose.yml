@@ -3,6 +3,7 @@ version: '3'
 services:
   squidguard:
     image: muenchhausen/docker-squidguard:1.0.0
+    hostname: squid
     environment:
       - TZ=America/New_York
       # I want to use WPAD
@@ -44,13 +45,17 @@ services:
 
   filebeat:
     build: ./filebeat
+    hostname: filebeat
     environment:
       - TZ=America/New_York
       - LOGSTASH_HOST=elk
       - LOGSTASH_PORT=5000
-    links:
+    depends_on: 
       - elk
       - squidguard
+    # links:
+    #   - elk
+    #   - squidguard
     
 volumes:
   squidguard:
