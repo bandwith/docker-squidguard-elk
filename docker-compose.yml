@@ -2,8 +2,8 @@ version: '3'
 
 services:
   squidguard:
-    image: muenchhausen/docker-squidguard:1.0.0
-    hostname: squid
+    image: bandwith/squidguard-debian
+    hostname: squidguard
     environment:
       - TZ=America/New_York
       # I want to use WPAD
@@ -15,7 +15,6 @@ services:
       # I have some config files I want to overwrite
       # e.g. squidGuard.conf, wpad.dat and block.html:
       - SQUID_CONFIG_SOURCE=/custom-config
-      #- SQUID_UID=1000          # workaround for folder mapping problem on MAC OS: UserID for user proxy
     ports:
       - "3128:3128"
       - "80:80"
@@ -25,7 +24,7 @@ services:
     volumes:
       # please adapt this to your needs
       - ./myconfig:/custom-config
-      - /var/log/squid3
+      - /var/log/squid
 
   elk:
     build: ./elk
@@ -37,25 +36,35 @@ services:
       - "9200:9200"
       - "5000:5000"
       - "5044:5044"
-    expose:
-      - 5601
-      - 9200
-      - 5000
-      - 5044
+    # expose:
+    #   - 5601
+    #   - 9200
+    #   - 5000
+    #   - 5044
 
   filebeat:
-    build: ./filebeat
+    image: elastic/filebeat:7.6.2
+    # build: ./filebeat
     hostname: filebeat
+    command: filebeat -e -strict.perms=false
     environment:
       - TZ=America/New_York
-      - LOGSTASH_HOST=elk
-      - LOGSTASH_PORT=5000
+      - KIBANA_HOST=elk
+      - ELASTICSEARCH_HOSTS=elk
+      # - ELASTICSEARCH_USERNAME
+      # - ELASTICSEARCH_PASSWORD
+      # - LOGSTASH_HOST=elk
+      # - LOGSTASH_PORT=5000
+    volumes: 
+      - ./filebeat/my-config/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      # - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      # - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on: 
       - elk
       - squidguard
-    # links:
-    #   - elk
-    #   - squidguard
+    links:
+      - elk
+      - squidguard
     
 volumes:
   squidguard:
